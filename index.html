@@ -49,6 +49,18 @@ canvas{display:block;border-radius:8px;touch-action:none;cursor:pointer}
 .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,8,6,.6);z-index:20}
 .modal .card{width:min(560px,92%);max-height:90%;overflow:auto;background:#2b2118;border:2px solid #6b4a2a;border-radius:12px;padding:16px 18px;font-size:13px;line-height:1.75;color:var(--muted)}
 .modal b{color:var(--ink)}
+.tin{font:inherit;font-size:14px;background:#1d1a16;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:min(260px,70%);margin:6px 0;-webkit-user-select:text;user-select:text}
+#cookPot{display:flex;gap:6px}.slot{width:56px;height:56px;border-radius:10px;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;line-height:1.1}
+.slot small{font-size:10px;color:var(--muted)}.slot.empty{border:2px dashed #5a4a38;color:#5a4a38;font-size:20px}
+#cookInv,#cookRecipes{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 10px}.ing small{color:var(--muted)}
+.rcp small{opacity:.8}.rcp.no{opacity:.45}
+#invList{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.invc{display:flex;flex-direction:column;align-items:center;background:#3a2c20;border:1px solid #4f3d2c;border-radius:10px;padding:6px;color:var(--ink);text-align:center}.invc small{font-size:10px;color:var(--muted)}.invc.zero{opacity:.4}
+#fish{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;padding-bottom:12%;z-index:7;cursor:pointer}
+#fish .fcard{background:rgba(30,22,14,.9);border:2px solid #6aa8c4;border-radius:12px;padding:10px 14px;width:min(360px,80%);text-align:center;color:var(--ink)}
+#fishMsg{font-weight:600;margin-bottom:8px}#fish small{color:var(--muted);font-size:11px}
+#fishBar{position:relative;height:16px;background:#2a3a44;border-radius:8px;margin:6px 0;transition:opacity .2s}
+#fishZone{position:absolute;top:0;bottom:0;background:#f2c94c;border-radius:8px}#fishMark{position:absolute;top:-4px;width:4px;height:24px;background:#fff;border-radius:2px;margin-left:-2px;box-shadow:0 0 6px #fff}
 #questList{display:flex;flex-direction:column;gap:8px}
 .q{display:flex;align-items:center;gap:10px;background:#3a2c20;border:1px solid #4f3d2c;border-radius:10px;padding:8px 10px}
 .q.qc{opacity:.5}.qt{flex:1;color:var(--ink);line-height:1.5}.qt small{color:var(--muted)}
@@ -83,12 +95,15 @@ body.compact #toast{top:38px}
   <div class="sp"></div>
   <div class="grp"><button data-v="1">마을 1</button><button data-v="2">마을 2</button><button data-v="3">마을 3</button></div>
   <button id="bQuest">📜 부탁</button>
+  <button id="bInvite">🔗 초대</button>
+  <button id="bAcct">👤</button>
   <button id="bHelp" title="도움말">?</button>
   <button id="bFull" title="전체 화면">⛶</button>
 </div>
 <div id="stage">
  <div id="wrap"><canvas id="c"></canvas><div id="toast"></div>
   <div id="foodMenu"></div>
+  <div id="fish"><div class="fcard"><div id="fishMsg">찌를 던졌어요…</div><div id="fishBar"><i id="fishZone"></i><b id="fishMark"></b></div><small>노란 칸에 왔을 때 화면을 탭하거나 Space·X</small></div></div>
   <div id="shop"><div class="card">
    <div class="hd"><b>🏪 마을 점방</b><span id="shopPts" class="pill">🥣 0</span><button id="shopTest" title="프로토타입 테스트용">테스트 +20</button><button id="shopClose">닫기</button></div>
    <p class="sub">빈 그릇을 주워서 가져오면 🥣 포인트로 바꿔 줘요 (남의 그릇 1개 = 🥣1, 5개 이상 한 번에 +2). <a href="#" id="shopQuest" style="color:#f0b35a">📜 부탁 보기</a></p>
@@ -101,12 +116,14 @@ body.compact #toast{top:38px}
   <div class="grp">
     <button id="bSit">앉기<span class="k"> E</span></button>
     <button id="bMat" class="mat">돗자리 펴기<span class="k"> M</span></button>
-    <button id="bFood">음식<span class="k"> F</span></button>
+    <button id="bFood">🍳 요리<span class="k"> F</span></button>
     <button id="bEat">먹기<span class="k"> Q</span></button>
     <button id="bCheer">건배<span class="k"> C</span></button>
     <button id="bShare">한입 주기<span class="k"> G</span></button>
     <button id="bClear">그릇 줍기<span class="k"> R</span></button>
     <button id="bShop">🏪 점방<span class="k"> B</span></button>
+    <button id="bGather">🎣 채집<span class="k"> X</span></button>
+    <button id="bInv">🧺 재료</button>
     <span id="bag" class="grp"></span>
   </div>
   <div class="sp"></div>
@@ -117,16 +134,49 @@ body.compact #toast{top:38px}
   <p style="margin:6px 0 10px">첫걸음은 하면 바로 보상, 오늘의 부탁은 다 하면 <b>점방 할머니</b>에게 가서 받아요. 매일 새로 바뀌어요.</p>
   <div id="questList"></div>
 </div></div>
+<div id="cook" class="modal"><div class="card">
+  <div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px;flex:1">🍳 요리하기</b><button id="cookClose">닫기</button></div>
+  <p style="margin:6px 0 8px">재료를 최대 4개까지 넣어요. 레시피대로면 요리, 하나 더 넣으면 <b>독특한 요리</b>, 아무렇게나 섞으면 <b>괴식</b>!</p>
+  <div id="cookPot"></div><div id="cookPreview" style="margin:6px 0"></div>
+  <div style="display:flex;gap:8px;margin-bottom:10px"><button id="cookGo" class="on">요리하기</button><button id="cookRice">맨밥 (무료)</button></div>
+  <b>내 재료</b><div id="cookInv"></div>
+  <b>아는 레시피</b> <small>(누르면 재료가 채워져요)</small><div id="cookRecipes"></div>
+  <p id="cookInfo" style="margin-top:8px"></p>
+</div></div>
+<div id="result" class="modal"><div class="card" style="text-align:center">
+  <div id="resTitle" style="color:#f0b35a;font-weight:700"></div>
+  <canvas id="resPic" width="200" height="120" style="image-rendering:pixelated;margin:6px auto;display:block"></canvas>
+  <b id="resName" style="font-size:20px"></b><p id="resLine" style="color:var(--ink)"></p><small id="resIngs"></small><br><br>
+  <button id="resCard" class="on">📸 카드 저장·자랑하기</button> <button id="resClose">닫기</button>
+</div></div>
+<div id="inv" class="modal"><div class="card">
+  <div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px;flex:1">🧺 재료 · 📖 괴식 도감</b><button id="invClose">닫기</button></div>
+  <p style="margin:6px 0 8px">🎣 개울 나루터에서 낚시 · 🌳 나무를 흔들면 열매 · 🏪 점방에서 기본 재료 (🥣1)</p>
+  <div id="invList"></div><br><b>📖 괴식 도감</b><div id="bookList" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
+</div></div>
+<div id="acct" class="modal"><div class="card">
+  <div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px;flex:1">👤 내 기록 지키기</b><button id="acctClose">닫기</button></div>
+  <p id="acctState"></p>
+  <div id="acctLink"><b>이메일 연결하기</b> (지금 기록이 그 이메일 계정이 돼요)<br>
+   <input id="acctEmail" type="email" placeholder="me@example.com" class="tin"> <button id="acctLinkGo" class="on">연결 메일 받기</button></div>
+  <br><b>다른 기기에서 이어하기</b> (이미 이메일을 연결해 둔 경우)<br>
+  <input id="loginEmail" type="email" placeholder="me@example.com" class="tin"> <button id="loginGo">로그인 메일 받기</button>
+  <p id="acctMsg" style="color:#f0b35a"></p>
+  <small>비밀번호는 없어요. 메일로 온 링크만 누르면 돼요.</small>
+</div></div>
 <div id="help" class="modal"><div class="card">
   <b style="font-size:16px">한끼 하는 법</b><br><br>
   <b>이동</b> 땅을 탭·클릭 (PC는 방향키·WASD도 가능)<br>
   <b>앉기</b> 의자나 돗자리 자리를 탭 · <b>돗자리</b> 풀밭에서 '돗자리 펴기' (3인용, 마을당 4장)<br>
-  <b>음식</b> 앉은 뒤 꺼내서 먹고, 건배하고, 옆 사람에게 한입 나눠주기<br>
+  <b>채집</b> 개울 나루터에서 🎣 낚시(타이밍 맞추기), 나무를 탭해서 🌳 열매 흔들기, 점방에서 기본 재료 · 같이 하면 더 잘 돼요<br>
+  <b>🍳 요리</b> 앉아서 재료를 섞어요. 레시피대로면 요리, 하나 더 넣으면 독특한 요리, 아무렇게나면 <b>괴식</b> → 📖 도감에 기록, 📸 카드로 자랑<br>
+  <b>먹기</b> 먹고, 건배하고, 옆 사람에게 한입 나눠주기<br>
   건배와 나눠주기는 <b>같은 식탁·같은 돗자리</b> 안에서만 통해요.<br>
   <b>그릇 줍기</b> 남이 남긴 빈 그릇을 탭해서 들고(최대 6개) <b>점방</b>에 가져가면 🥣 포인트로 바꿔 줘요<br>
   <b>📜 부탁</b> 점방 할머니의 첫걸음·오늘의 부탁을 하면 🥣와 선물을 받아요 · <b>펫</b>을 탭하면 쓰다듬기<br>
   <b>점방</b> 오른쪽 위 가게에서 돗자리·옷·모자·그릇·펫·칭호·레시피·불꽃놀이·이모지 (47종)<br>
   <b>마을</b> 한 마을은 16명까지, 꽉 차면 옆 마을로. 🟢 온라인 / ⚪ 혼자 모드<br>
+  <b>🔗 초대</b> 지금 마을로 오는 링크를 친구에게 보내요 · <b>👤</b> 이메일을 연결하면 기록이 안전해요<br>
   <b>이름</b> 왼쪽 위 칸에서 바꿀 수 있어요. · 휴대폰은 <b>가로 화면</b> + ⛶ 전체 화면 추천<br><br>
   <button id="helpClose">닫기</button>
 </div></div>
@@ -171,6 +221,11 @@ const FOODS={
  sikhye:{name:'식혜',color:'#efe2c0',lines:['밥알이 동동, 마음도 동동','달큰하고 시원하다','찜질방이 떠오르는 맛']},
  hotteok:{name:'호떡',color:'#b8743a',lines:['꿀이 흘러나와 손가락까지 달다','겉은 바삭, 속은 뜨끈','조심! 설탕물이 뜨겁다']},
  bungeo:{name:'붕어빵',color:'#c88a3a',lines:['머리부터 먹는 파와 꼬리부터 먹는 파','팥이 꼬리 끝까지 들어 있다','붕어 두 마리가 순식간에 사라졌다']},
+ rice:{name:'맨밥',color:'#f4efe4',lines:['소박하지만 따뜻하다','밥은 역시 같이 먹어야 맛있다','꼭꼭 씹으니 단맛이 난다']},
+ maeun:{name:'매운탕',color:'#c83a22',multi:['#c83a22','#7fbf5a','#c83a22','#8aa0b0'],lines:['얼큰한 국물에 개울 냄새가 살짝','땀이 송골송골, 속은 후련','직접 낚은 물고기라 더 맛있다']},
+ daseulgi:{name:'다슬기국',color:'#6f8f5a',lines:['시원한 국물이 속을 쓸어내린다','쫄깃쫄깃, 하나씩 빼 먹는 재미','미나리 향이 은은하다']},
+ catfish:{name:'메기구이',color:'#9a5a3a',lines:['기름진 살이 입에서 녹는다','매콤한 양념이 쏙 배었다','개울의 대물을 먹는 기분']},
+ goldjjim:{name:'황금 잉어찜',color:'#f2b33a',lines:['한 입 먹었을 뿐인데 운이 좋아지는 기분','반짝이는 맛이 난다. 진짜로.','마을 전설이 될 만한 맛']},
  weird:{name:'정체불명 찌개',color:'#6fbf4a',weird:true,lines:['비린 단맛이 혀끝에서 사과하고 떠난다','양말 맛이 난다. 근데 왜 또 먹고 싶지','국물이 나를 쳐다본다','세 번 씹으니 노래가 들린다','달고 짜고 차갑고 뜨겁다. 동시에.']}
 };
 const EMOTES=['😊','👍','😋','❤️','🙏'];
@@ -358,7 +413,7 @@ function sit(e,id){const s=seatOf(id);if(!s)return;e.seat=id;e.x=s.x;e.y=s.sitY;
  for(let k=traces.length-1;k>=0;k--)if(traces[k].seat===id){const t=traces[k];if(e===me&&me.carry.length<CARRY_MAX)clearTrace(t,true);else{traces.splice(k,1);if(e===me&&t.id)send({t:'clear',id:me.id,tid:t.id})}}
  if(e===me){updateUI();track('sit')}else{const s2=seatOf(id);if(s2&&s2.mat&&s2.mat.ownerId===me.id)track('matGuest')}}
 function standUp(e){const s=seatOf(e.seat);if(!s){e.seat=null;return}
- if(e.food){const ex=traces.find(t=>t.seat===s.id);if(ex){ex.n=Math.min(5,(ex.n||1)+1);ex.until=now+60000;if(e===me&&ex.id)send({t:'tn',id:me.id,tid:ex.id,n:ex.n})}else{const tr={n:1,id:'tr'+Math.random().toString(36).slice(2,9),bowl:e.bowl,ownerId:e.id,seat:s.id,kind:s.kind,x:s.x,y:s.plateY,food:e.food,bites:e.bites,name:e.name,note:e.bites>0?'금방 올게요':'잘 먹었습니다'};traces.push(Object.assign({until:now+60000},tr));if(e===me)send({t:'trace',id:me.id,tr})}}
+ if(e.food){const ex=traces.find(t=>t.seat===s.id);if(ex){ex.n=Math.min(5,(ex.n||1)+1);ex.until=now+60000;if(e===me&&ex.id)send({t:'tn',id:me.id,tid:ex.id,n:ex.n})}else{const tr={foodDef:FOODS[e.food]&&FOODS[e.food].dyn?FOODS[e.food]:null,n:1,id:'tr'+Math.random().toString(36).slice(2,9),bowl:e.bowl,ownerId:e.id,seat:s.id,kind:s.kind,x:s.x,y:s.plateY,food:e.food,bites:e.bites,name:e.name,note:e.bites>0?'금방 올게요':'잘 먹었습니다'};traces.push(Object.assign({until:now+60000},tr));if(e===me)send({t:'trace',id:me.id,tr})}}
  if(false)traces.push({bowl:e.bowl,ownerId:e.id,seat:s.id,kind:s.kind,x:s.x,y:s.plateY,food:e.food,bites:e.bites,name:e.name,note:e.bites>0?'금방 올게요':'잘 먹었습니다',until:now+60000});
  e.food=null;e.bites=0;e.seat=null;e.x=s.x;e.y=s.standY;e.dir=(s.kind==='table'&&s.row===0)?'up':'down';if(e===me){updateUI();closeFood()}}
 function takeFood(e,k){const s=seatOf(e.seat);if(!s)return;if(e===me&&cons.spice>0&&k!=='weird'){cons.spice--;save();setTimeout(()=>{toast('향신료를 넣었더니… 정체불명 찌개가 됐다');sayEmote(me,'😵')},300);k='weird'}e.food=k;e.bites=4;for(let i=0;i<4;i++)parts.push({x:s.x+rand(-4,4),y:s.plateY-2,vx:rand(-6,6),vy:rand(-14,-6),t:now,life:600,c:'#fff8ec'});if(e===me)updateUI()}
@@ -380,9 +435,9 @@ function share(from){if(!isSeated(from)||!from.food||from.bites<=0)return false;
  if(!to){if(from===me)toast('같은 식탁·돗자리에 앉은 사람에게만 나눠줄 수 있어요');return false}
  from.bites--;if(from===me)track('share');const a=seatOf(from.seat),b=seatOf(to.seat);const food=from.food;
  flies.push({x0:a.x,y0:a.plateY-3,x1:b.x,y1:b.plateY-3,t:now,dur:550,c:FOODS[food].color});
- setTimeout(()=>{if(to.isRemote)send({t:'share',to:to.id,from:from.name,food});else receive(to,from.name,food)},560);
+ setTimeout(()=>{if(to.isRemote)send({t:'share',to:to.id,from:from.name,food,foodDef:FOODS[food].dyn?FOODS[food]:null});else receive(to,from.name,food)},560);
  if(from===me)updateUI();return true}
-function receive(e,fromName,food){const f=FOODS[food];
+function receive(e,fromName,food){const f=FOODS[food];if(!f)return;
  if(f.weird){sayEmote(e,'😵');sayBubble(e,`${fromName}님의 ${f.name}… ${pick(f.lines)}`,5200);if(e.npc)setTimeout(()=>sayEmote(e,pick(['😂','🤢','❓'])),2000)}
  else{sayEmote(e,'😋');sayBubble(e,`${fromName}님 고마워요! ${pick(f.lines)}`,4800);if(e.npc)setTimeout(()=>sayEmote(e,'🙏'),2400)}}
 
@@ -407,9 +462,10 @@ function spawnLeftover(){const near=traces.filter(t=>t.shared&&(t.n||1)<5);
 
 // ---------- 그릇 포인트(화폐) ----------
 let pts=3;const owned=new Set();const cons={spice:0,firework:0,firefly:0};const EQUIP=['matSkin','cloth','title','hat','bowl','pet'];
-function save(){try{const o={pts,owned:[...owned],cons,name:me.name,carry:me.carry};for(const k of EQUIP)o[k]=me[k]||null;localStorage.setItem('hankki-save-v1',JSON.stringify(o))}catch(e){}}
+function save(){try{const o={pts,owned:[...owned],cons,name:me.name,carry:me.carry,inv:me.inv,found:me.found||[],mastery:me.mastery||{},book:me.book||[],starter:me.starter||0};if(typeof cloudSave==='function')cloudSave(o);for(const k of EQUIP)o[k]=me[k]||null;localStorage.setItem('hankki-save-v1',JSON.stringify(o))}catch(e){}}
 function load(){try{const d=JSON.parse(localStorage.getItem('hankki-save-v1')||'null');if(!d)return;pts=d.pts|0;(d.owned||[]).forEach(x=>owned.add(x));if(d.cons)Object.assign(cons,d.cons);if(d.spice)cons.spice+=d.spice|0;
- for(const k of EQUIP)if(d[k])me[k]=d[k];if(d.name)me.name=d.name;if(Array.isArray(d.carry))me.carry=d.carry.slice(0,CARRY_MAX)}catch(e){}}
+ for(const k of EQUIP)if(d[k])me[k]=d[k];if(d.name)me.name=d.name;if(Array.isArray(d.carry))me.carry=d.carry.slice(0,CARRY_MAX);applySave(d)}catch(e){}}
+function applySave(d){if(d.inv)me.inv=d.inv;if(d.found)me.found=d.found;if(d.mastery)me.mastery=d.mastery;if(d.book){me.book=d.book;for(const b of d.book)regFood(b.key,{name:b.name,color:b.color,weird:true,lines:[b.line]})}if(d.starter)me.starter=d.starter}
 function traceApproach(t){const s=seatOf(t.seat);if(s&&s.kind==='table')return{x:s.x,y:s.standY};if(s&&s.mat)return{x:t.x,y:s.mat.y+17};return{x:t.x,y:t.y+6}}
 const CARRY_MAX=6;
 function clearTrace(t,silent){const k=traces.indexOf(t);if(k<0)return;if(me.carry.length>=CARRY_MAX){if(!silent)toast('손이 꽉 찼어요! 점방에 가져다주세요');return}
@@ -425,17 +481,116 @@ function deliverBowls(){const n=me.carry.length;if(!n)return false;const paid=me
  sayBubble(keeper,gain?(bonus?`이렇게 많이! 고마워라~ 🥣+${gain}`:`아이고 고마워라! 🥣+${gain}`):'자기 그릇은 자기가 치워야지~ 그래도 고마워',3200);sayEmote(keeper,'😊');
  for(let i=0;i<16;i++)parts.push({x:STALL.x+rand(-12,12),y:STALL.y-4,vx:rand(-22,22),vy:rand(-34,-10),t:now,life:900,c:pick(['#ffe27a','#fff6d0','#bfe8ff'])});
  if(gain)parts.push({emoji:`🥣+${gain}`,x:STALL.x,y:STALL.y-14,vx:0,vy:-12,t:now,life:1500});
- track('deliver',paid);forceSend=true;save();updateUI();updatePop();return true}
+ track('deliver',paid);logEvent('deliver',{n:paid});forceSend=true;save();updateUI();updatePop();return true}
 function nearestTrace(){let best=null,bd=22;for(const t of traces){const d=Math.hypot(me.x-t.x,me.y-t.y);if(d<bd){bd=d;best=t}}return best}
 function clearNearest(){const t=nearestTrace();if(t)clearTrace(t);else if(me.carry.length&&nearShop())deliverBowls();else toast(me.carry.length?'점방에 가져가면 포인트로 바꿔줘요':'가까이에 치울 그릇이 없어요')}
 
+// ---------- 재료·요리·괴식 ----------
+const INGS={
+ rice:{n:'쌀',e:'🍚',c:'#f4efe4',tags:['든든한','담백한'],src:'점방'},egg:{n:'달걀',e:'🥚',c:'#f2c94c',tags:['고소한','부드러운'],src:'점방'},
+ kimchi:{n:'김치',e:'🥬',c:'#d9482b',tags:['새콤한','칼칼한'],src:'점방'},veg:{n:'채소',e:'🥕',c:'#5aa83c',tags:['아삭한','싱그러운'],src:'점방'},
+ gochu:{n:'고추장',e:'🌶️',c:'#b8322c',tags:['매운','달큰한'],src:'점방'},gim:{n:'김',e:'🟩',c:'#2f3a2a',tags:['짭짤한','바삭한'],src:'점방'},
+ flour:{n:'밀가루',e:'🌾',c:'#efe2c0',tags:['담백한','폭신한'],src:'점방'},
+ fish:{n:'붕어',e:'🐟',c:'#8aa0b0',tags:['비린','담백한'],src:'개울'},snail:{n:'다슬기',e:'🐚',c:'#5a6a4a',tags:['쫄깃한','시원한'],src:'개울'},
+ minari:{n:'미나리',e:'🌿',c:'#7fbf5a',tags:['향긋한','아삭한'],src:'개울'},catfish:{n:'메기',e:'🐡',c:'#6b5a4a',tags:['기름진','비린'],src:'개울 (드묾)'},
+ goldfish:{n:'금빛 잉어',e:'✨',c:'#f2b33a',tags:['황홀한','반짝이는'],src:'개울 (아주 드묾)'},
+ apple:{n:'사과',e:'🍎',c:'#e0402e',tags:['달콤한','아삭한'],src:'나무'},persimmon:{n:'감',e:'🟠',c:'#f08a2a',tags:['달콤한','말랑한'],src:'나무'},
+ chestnut:{n:'밤',e:'🌰',c:'#8a5a2b',tags:['고소한','포근한'],src:'나무'}};
+const RECIPES={kimchi:['kimchi','veg'],egg:['egg','veg'],bibim:['gochu','rice','veg'],kimbap:['egg','gim','rice'],ramen:['egg','flour'],jeon:['flour','minari'],
+ sikhye:['persimmon','rice'],tteok:['gochu','rice'],hotteok:['chestnut','flour'],bungeo:['chestnut','egg','flour'],hwachae:['apple','persimmon'],
+ maeun:['fish','gochu','minari'],daseulgi:['minari','snail'],catfish:['catfish','gochu'],goldjjim:['goldfish','gochu']};
+const BASE_KNOWN=['kimchi','egg','bibim','kimbap'];
+const STARTER={rice:3,egg:2,kimchi:2,veg:2,gim:1};
+const PANTRY=['rice','egg','kimchi','veg','gochu','gim','flour'];
+function knows(k){return BASE_KNOWN.includes(k)||owned.has('food_'+k)||(me.found||[]).includes(k)}
+function invAdd(k,n){me.inv[k]=(me.inv[k]||0)+(n||1);save()}
+function hasAll(list){const need={};for(const k of list)need[k]=(need[k]||0)+1;return Object.entries(need).every(([k,n])=>(me.inv[k]||0)>=n)}
+function mixColor(cs){let r=0,g=0,b=0;for(const c of cs){const n=parseInt(c.slice(1),16);r+=n>>16;g+=n>>8&255;b+=n&255}const k=cs.length;return'#'+[r,g,b].map(v=>Math.round(v/k*.75+40).toString(16).padStart(2,'0')).join('')}
+function regFood(key,def){if(!FOODS[key])FOODS[key]=Object.assign({dyn:true},def);return key}
+function designFood(sel){const sorted=[...sel].sort();const id=sorted.join('+');
+ if(!sel.length)return{key:'rice',kind:'free'};
+ if(id==='fish+flour')return{key:regFood('w:fish+flour',{name:'진짜 붕어빵',color:'#9aa0a0',weird:true,lines:['붕어가… 진짜 들어 있다','붕어빵에 붕어가 없다는 상식이 무너졌다']}),kind:'weird'};
+ for(const[k,r]of Object.entries(RECIPES))if(r.join('+')===id)return{key:k,kind:'recipe'};
+ for(const[k,r]of Object.entries(RECIPES)){if(r.length<2||sorted.length!==r.length+1)continue;if(r.every(x=>sorted.includes(x))){const ex=sorted.find(x=>!r.includes(x));const f=FOODS[k];const t=INGS[ex].tags[0];
+   return{key:regFood('v:'+k+':'+ex,{name:`${INGS[ex].n} ${f.name}`,color:f.color,multi:f.multi,uniq:true,lines:[`${f.name} 사이로 ${INGS[ex].n}의 ${t} 맛이 살짝 고개를 내민다`,`평범한 ${f.name}인 줄 알았는데 ${t} 반전이 있다`]}),kind:'uniq',base:k}}}
+ const r=seeded(id);const a=INGS[sorted[0]],b=INGS[sorted[1]||sorted[0]];
+ const suf=['찌개','범벅','죽','볶음','젤리','파이','라떼','전','국수','주스','빙수','튀김'][Math.floor(r()*12)];
+ const verbs=['혀끝에서 사과하고 떠난다','입안에서 줄다리기를 한다','서로 모른 척하다 갑자기 화해한다','동시에 인사를 건넨다','순서를 정하지 못해 다툰다','묘하게 잘 어울려서 당황스럽다','씹을 때마다 다른 노래가 들린다'];
+ const t1=a.tags[Math.floor(r()*2)],t2=b.tags[Math.floor(r()*2)];
+ const name=(sorted.length>2?`${a.n} ${b.n}… `:`${a.n} ${b.n} `)+suf;
+ return{key:regFood('w:'+id,{name,color:mixColor(sorted.map(k=>INGS[k].c)),weird:true,ings:sorted,lines:[`${t1} 맛과 ${t2} 맛이 ${verbs[Math.floor(r()*verbs.length)]}`,`${name}… ${pick(['한 입 더?','도감에 적어 둬야겠다','이걸 누가 만들었지'])}`]}),kind:'weird'}}
+let pot=[];
+function openCook(){if(!isSeated(me)){toast('먼저 식탁이나 돗자리에 앉아요');return}pot=[];renderCook();$('cook').style.display='flex'}
+function closeCook(){$('cook').style.display='none'}
+function renderCook(){const inv=$('cookInv');inv.innerHTML='';const ks=Object.keys(INGS).filter(k=>(me.inv[k]||0)>0);
+ if(!ks.length)inv.innerHTML='<span class="qr">재료가 없어요 · 개울에서 낚시하고, 나무를 흔들고, 점방에서 사 와요</span>';
+ ks.forEach(k=>{const left=(me.inv[k]||0)-pot.filter(x=>x===k).length;const b=document.createElement('button');b.className='ing';b.disabled=left<=0||pot.length>=4;b.innerHTML=`${INGS[k].e} ${INGS[k].n} <small>${left}</small>`;b.onclick=()=>{if(pot.length<4&&!pot.includes(k)){pot.push(k);renderCook()}else if(pot.includes(k))toast('같은 재료는 한 번만')};inv.appendChild(b)});
+ $('cookPot').innerHTML=[0,1,2,3].map(i=>pot[i]?`<button class="slot" data-i="${i}">${INGS[pot[i]].e}<small>${INGS[pot[i]].n}</small></button>`:`<span class="slot empty">+</span>`).join('');
+ $('cookPot').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{pot.splice(+b.dataset.i,1);renderCook()});
+ const d=pot.length?designFood(pot):null;let pv='재료 없이 요리하면 <b>맨밥</b>이 나와요 (무료)';
+ if(d){if(d.kind==='recipe')pv=knows(d.key)?`→ <b>${FOODS[d.key].name}</b>`:'→ <b>❓ 처음 보는 조합이에요!</b>';else pv='→ <b>❓ 무엇이 나올지 몰라요</b>'}
+ $('cookPreview').innerHTML=pv;
+ const rl=$('cookRecipes');rl.innerHTML='';let unknown=0;
+ for(const[k,r]of Object.entries(RECIPES)){if(!knows(k)){unknown++;continue}const ok=hasAll(r);const m=(me.mastery||{})[k]||0;const b=document.createElement('button');b.className='rcp'+(ok?'':' no');
+  b.innerHTML=`<b>${FOODS[k].name}</b>${m>=5?' ★':''} <small>${r.map(x=>INGS[x].e).join('')}</small>`;b.onclick=()=>{if(!ok){toast(`재료가 부족해요: ${r.filter(x=>!(me.inv[x]>0)).map(x=>INGS[x].n).join(', ')}`);return}pot=[...r];renderCook()};rl.appendChild(b)}
+ const book=(me.book||[]).length;$('cookInfo').innerHTML=`아직 모르는 레시피 <b>${unknown}</b>개 · 개울 재료가 들어간 것도 있어요 · 📖 괴식 도감 <b>${book}</b>종`}
+function doCook(){if(!isSeated(me)){closeCook();return}const sel=[...pot];if(!hasAll(sel)){toast('재료가 부족해요');return}
+ for(const k of sel)me.inv[k]--;const d=designFood(sel);closeCook();sayEmote(me,'🍳');me.cookUntil=now+1300;
+ for(let i=0;i<10;i++)setTimeout(()=>{const s=seatOf(me.seat);if(s)parts.push({x:s.x+rand(-4,4),y:s.plateY-4,vx:rand(-3,3),vy:-10,t:now,life:900,c:'rgba(255,255,255,.8)',steam:1})},i*110);
+ setTimeout(()=>{if(!isSeated(me))return;let first=false;
+  if(d.kind==='recipe'&&!knows(d.key)){me.found=me.found||[];me.found.push(d.key);first=true;track('discover');logEvent('discover',{food:d.key})}
+  me.mastery=me.mastery||{};const mk=d.base||d.key;me.mastery[mk]=(me.mastery[mk]||0)+1;
+  takeFood(me,d.key);const special=me.mastery[mk]>=5&&Math.random()<.3&&d.kind!=='weird';if(special){me.bites=5;toast('★ 손에 익었어요! 특제라서 한 입 더')}
+  track('cook');if(d.kind==='weird'){track('cookWeird');addBook(d.key,sel);logEvent('weird',{name:FOODS[d.key].name})}
+  if(d.kind==='weird'||d.kind==='uniq'||first)showResult(d.key,sel,first?'새 레시피 발견!':d.kind==='weird'?'괴식 탄생!':'독특한 요리!');
+  save();updateUI();forceSend=true},1300)}
+function addBook(key,sel){me.book=me.book||[];if(!me.book.some(b=>b.key===key)){me.book.unshift({key,name:FOODS[key].name,line:FOODS[key].lines[0],ings:sel,color:FOODS[key].color,d:todayStr()});if(me.book.length>60)me.book.pop()}}
+let lastResult=null;
+function showResult(key,sel,title){const f=FOODS[key];lastResult={key,sel,title};$('resTitle').textContent=title;$('resName').textContent=f.name;$('resLine').textContent=f.lines[0];$('resIngs').textContent=sel.map(k=>INGS[k].e+' '+INGS[k].n).join(' + ')||'(재료 없음)';
+ const pc=$('resPic'),g2=pc.getContext('2d');g2.clearRect(0,0,pc.width,pc.height);drawFoodIcon(g2,f,pc.width/2,pc.height/2,8);$('result').style.display='flex'}
+function drawFoodIcon(g2,f,cx,cy,sc){const P=(x,y,w2,h2,c)=>{g2.fillStyle=c;g2.fillRect(Math.round(cx+x*sc),Math.round(cy+y*sc),Math.ceil(w2*sc),Math.ceil(h2*sc))};
+ P(-7,0,14,4,'#efe7d8');P(-6,4,12,1,'#c9bfae');P(-7,-1,14,1,'#fff8ec');
+ if(f.multi){for(let i=0;i<12;i++)P(-6+i,-3,1,3,f.multi[i%f.multi.length])}else P(-6,-3,12,3,f.color);
+ P(-5,-4,10,1,shade(f.color||'#999999',.25));if(f.weird){P(-2,-7,1,1,'#b07ae0');P(1,-9,1,1,'#b07ae0');P(3,-6,1,1,'#b07ae0')}else{P(-2,-7,1,2,'rgba(255,255,255,.7)');P(2,-8,1,2,'rgba(255,255,255,.7)')}}
+// 낚시·나무
+const DOCK={x:82,y:147};const TREE_FRUIT=['apple','persimmon','chestnut','apple','persimmon','chestnut'];const treeCd={};const treeShake={};
+function nearDock(){return !isSeated(me)&&Math.hypot(me.x-DOCK.x,me.y-DOCK.y)<16}
+function nearTree(){if(isSeated(me))return -1;let bi=-1,bd=18;TREES.forEach(([tx,ty],i)=>{const d=Math.hypot(me.x-tx,me.y-(ty+7));if(d<bd){bd=d;bi=i}});return bi}
+function friendsNear(x,y){return allEnts().filter(e=>e!==me&&Math.hypot(e.x-x,e.y-y)<34).length}
+function gatherCtx(){if(nearDock())return'fish';const t=nearTree();return t>=0?'tree':null}
+function doGather(){const c=gatherCtx();if(c==='fish')startFish();else if(c==='tree')shakeTree(nearTree());else toast('개울 나루터나 나무 가까이에서 할 수 있어요')}
+function shakeTree(i){const[tx,ty]=TREES[i];if(now<(treeCd[i]||0)){toast(`이 나무는 조금 쉬어야 해요 (${Math.ceil((treeCd[i]-now)/1000)}초)`);return}
+ treeCd[i]=now+40000;treeShake[i]=now+700;me.dir='up';const fr=friendsNear(tx,ty+7);const r=Math.random();let n=r<.15?0:r<.75?1:2;if(fr)n++;
+ const k=TREE_FRUIT[i];setTimeout(()=>{if(!n){toast('아무것도 안 떨어졌다…');return}for(let j=0;j<n;j++)parts.push({emoji:INGS[k].e,x:tx+rand(-8,8),y:ty-14,vx:rand(-6,6),vy:rand(4,10),t:now,life:900});
+  invAdd(k,n);toast(`${INGS[k].e} ${INGS[k].n} ${n}개를 주웠어요${fr?' · 같이 흔들어서 더 많이 ✨':''}`);track('shake');renderBagInv()},500)}
+let fishing=null;
+function startFish(){if(fishing)return;me.dir='left';const fr=friendsNear(DOCK.x,DOCK.y);fishing={st:'wait',t0:now,bite:now+rand(900,2600),pos:0,dir:1,spd:rand(1.1,1.6),zone:.22+(fr?.08:0),zc:rand(.3,.7),fr};$('fish').style.display='flex';$('fishMsg').textContent=fr?'찌를 던졌어요… (같이 낚시 중 ✨)':'찌를 던졌어요…';renderFish()}
+function renderFish(){if(!fishing)return;const z=$('fishZone'),m=$('fishMark');z.style.left=((fishing.zc-fishing.zone/2)*100)+'%';z.style.width=(fishing.zone*100)+'%';m.style.left=(fishing.pos*100)+'%';$('fishBar').style.opacity=fishing.st==='bite'?1:.35}
+function updateFish(dt){if(!fishing)return;if(fishing.st==='wait'&&now>fishing.bite){fishing.st='bite';fishing.until=now+2600;$('fishMsg').textContent='찌가 흔들린다! 노란 칸에서 눌러요!';if(navigator.vibrate)try{navigator.vibrate(60)}catch(e){}}
+ if(fishing.st==='bite'){fishing.pos+=fishing.dir*fishing.spd*dt;if(fishing.pos>1){fishing.pos=1;fishing.dir=-1}if(fishing.pos<0){fishing.pos=0;fishing.dir=1}if(now>fishing.until)endFish(false,'놓쳤다… 물고기가 도망갔어요')}
+ renderFish()}
+function fishPress(){if(!fishing)return;if(fishing.st==='wait'){endFish(false,'너무 일렀어요! 찌가 흔들릴 때 눌러요');return}if(fishing.st!=='bite')return;
+ const d=Math.abs(fishing.pos-fishing.zc);if(d>fishing.zone/2){endFish(false,'아깝다! 살짝 빗나갔어요');return}
+ const perfect=d<fishing.zone*.15;const r=Math.random();let k;const gb=(fishing.fr?.02:0)+(perfect?.01:0);
+ if(r<.02+gb)k='goldfish';else if(r<.12+gb+(perfect?.05:0))k='catfish';else if(r<.37)k='snail';else if(r<.57)k='minari';else k='fish';
+ invAdd(k,1);track('fish');if(k==='goldfish'){banners.push({txt:'✨ 금빛 잉어를 낚았다!',x:DOCK.x,y:DOCK.y-30,t:now,long:1});logEvent('goldfish')}
+ endFish(true,`${INGS[k].e} ${INGS[k].n}${k==='minari'?'를 뜯었어요':'를 낚았어요!'}${perfect?' (완벽!)':''}`)}
+function endFish(ok,msg){$('fishMsg').textContent=msg;fishing.st='end';if(ok)for(let i=0;i<10;i++)parts.push({x:DOCK.x-14+rand(-4,4),y:DOCK.y-2,vx:rand(-14,14),vy:rand(-26,-8),t:now,life:700,c:pick(['#bfe8ff','#ffffff','#6aa8c4'])});
+ setTimeout(()=>{fishing=null;$('fish').style.display='none'},ok?1200:1000);renderBagInv()}
+function renderBagInv(){const n=Object.values(me.inv||{}).reduce((a,b)=>a+b,0);const el=$('bInv');if(el)el.innerHTML=`🧺 재료 ${n}`}
+function openInv(){const box=$('invList');box.innerHTML='';const ks=Object.keys(INGS);ks.forEach(k=>{const n=me.inv[k]||0;const d=document.createElement('div');d.className='invc'+(n?'':' zero');d.innerHTML=`<span style="font-size:20px">${INGS[k].e}</span><b>${INGS[k].n}</b><small>${n}개 · ${INGS[k].src}</small>`;box.appendChild(d)});
+ const bk=$('bookList');bk.innerHTML=(me.book||[]).length?'':'<span class="qr">아직 괴식을 만들지 않았어요. 아무 재료나 섞어 보세요!</span>';
+ (me.book||[]).forEach(b=>{const d=document.createElement('div');d.className='q';d.innerHTML=`<span class="sw" style="width:18px;height:18px;border-radius:5px;background:${b.color}"></span><div class="qt"><b>${b.name}</b><br><small>${b.line}</small><br><small>${b.ings.map(k=>INGS[k]?INGS[k].e:'').join(' ')} · ${b.d}</small></div><button data-card="${b.key}">📸</button>`;bk.appendChild(d)});
+ bk.querySelectorAll('[data-card]').forEach(x=>x.onclick=()=>{const b=me.book.find(z=>z.key===x.dataset.card);if(b){regFood(b.key,{name:b.name,color:b.color,weird:true,lines:[b.line]});makeCard(b.key,b.ings,'괴식 도감')}});
+ $('inv').style.display='flex'}
+
 // ---------- 부탁(퀘스트) ----------
 const QDEF={
- sit:{t:'자리에 앉아 보기',u:'번'},eat:{t:'음식 먹기',u:'입'},pickup:{t:'빈 그릇 줍기',u:'개'},deliver:{t:'점방에 그릇 반납하기',u:'개'},
+ sit:{t:'자리에 앉아 보기',u:'번'},cook:{t:'요리하기',u:'번'},cookWeird:{t:'괴식 만들기',u:'번'},fish:{t:'개울에서 낚시 성공',u:'번'},shake:{t:'나무 흔들어 열매 줍기',u:'번'},discover:{t:'새 레시피 발견',u:'개'},cardShare:{t:'괴식 카드 저장·공유',u:'번'},invite:{t:'친구 초대 링크 보내기',u:'번'},eat:{t:'음식 먹기',u:'입'},pickup:{t:'빈 그릇 줍기',u:'개'},deliver:{t:'점방에 그릇 반납하기',u:'개'},
  cheerGroup:{t:'다 같이 건배하기',u:'번'},share:{t:'한입 나눠주기',u:'번'},emote:{t:'이모지 보내기',u:'번'},pet:{t:'펫 쓰다듬기',u:'번'},
  petOther:{t:'남의 펫 쓰다듬기',u:'번'},matGuest:{t:'내 돗자리에 손님 받기',u:'명'},mat:{t:'돗자리 펴기',u:'번'},eatWeird:{t:'괴식 맛보기',u:'입'},buy:{t:'점방에서 물건 사기',u:'개'},firework:{t:'불꽃놀이 터뜨리기',u:'번'}};
-const TUTORIAL=[{k:'sit',n:1,r:2},{k:'eat',n:3,r:2},{k:'pickup',n:1,r:2},{k:'deliver',n:1,r:3},{k:'mat',n:1,r:3}];
-const DAILY_POOL=[{k:'pickup',n:[4,6]},{k:'deliver',n:[3,6]},{k:'cheerGroup',n:[1,3]},{k:'share',n:[2,3]},{k:'emote',n:[5,8]},{k:'eat',n:[6,10]},{k:'matGuest',n:[1,2]},{k:'eatWeird',n:[1,2]},{k:'pet',n:[3,5],need:'pet'},{k:'petOther',n:[1,2]},{k:'buy',n:[1,1]}];
+const TUTORIAL=[{k:'sit',n:1,r:2},{k:'cook',n:1,r:2},{k:'eat',n:3,r:2},{k:'pickup',n:1,r:2},{k:'deliver',n:1,r:3},{k:'fish',n:1,r:3},{k:'shake',n:1,r:2},{k:'mat',n:1,r:3}];
+const DAILY_POOL=[{k:'fish',n:[2,4]},{k:'shake',n:[2,3]},{k:'cook',n:[2,3]},{k:'cookWeird',n:[1,1]},{k:'discover',n:[1,1]},{k:'pickup',n:[4,6]},{k:'deliver',n:[3,6]},{k:'cheerGroup',n:[1,3]},{k:'share',n:[2,3]},{k:'emote',n:[5,8]},{k:'eat',n:[6,10]},{k:'matGuest',n:[1,2]},{k:'eatWeird',n:[1,2]},{k:'pet',n:[3,5],need:'pet'},{k:'petOther',n:[1,2]},{k:'buy',n:[1,1]}];
 let Q={tut:0,tutP:0,day:'',daily:[],done:0};
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 function seeded(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);return mulberry(h>>>0)}
@@ -451,7 +606,7 @@ function questDone(msg){banners.push({txt:'📜 '+msg,x:160,y:30,t:now,long:1});
 function claimQuest(i){const q=Q.daily[i];if(!q||q.c||q.p<q.n)return;q.c=true;pts+=q.r;let extra='';
  if(q.item){const cand=SHOP.filter(it=>it.kind!=='cons'&&!owned.has(it.id)&&it.price<=10);if(cand.length){const it=cand[Math.floor(Math.random()*cand.length)];owned.add(it.id);if(it.kind==='food')buildFoodMenu();if(it.kind==='emotes')buildEmotes();extra=` + 🎁 ${it.name}`}}
  Q.done++;toast(`보상 받았어요 · 🥣+${q.r}${extra}`);sayBubble(keeper,'고마워요, 내일도 부탁해요~',2600);saveQ();save();renderQuests();renderShop();updatePop()}
-function saveQ(){try{localStorage.setItem('hankki-quest-v1',JSON.stringify(Q))}catch(e){}}
+function saveQ(){try{localStorage.setItem('hankki-quest-v1',JSON.stringify(Q))}catch(e){}save()}
 function loadQ(){try{const d=JSON.parse(localStorage.getItem('hankki-quest-v1')||'null');if(d)Q=Object.assign(Q,d)}catch(e){}if(Q.day!==todayStr())rollDaily();saveQ()}
 function renderQuests(){const box=$('questList');if(!box)return;box.innerHTML='';const L=questList();
  L.forEach((q,i)=>{const d=QDEF[q.k];const pct=Math.round(q.p/q.n*100);const row=document.createElement('div');row.className='q'+(q.c?' qc':'');
@@ -497,13 +652,14 @@ const SHOP=[
  {id:'title_keeper',cat:'칭호',name:'🌸 마을 살림꾼',price:12,kind:'title',val:'🌸 마을 살림꾼',desc:'이름 옆에 붙는 칭호'},
  {id:'title_lamp',cat:'칭호',name:'🏮 등불지기',price:18,kind:'title',val:'🏮 등불지기',desc:'이름 옆에 붙는 칭호'},
  {id:'title_gold',cat:'칭호',name:'✨ 한끼 지킴이',price:25,kind:'title',val:'✨ 한끼 지킴이',desc:'이름 옆에 붙는 칭호'},
- {id:'food_ramen',cat:'메뉴',name:'라면 레시피',price:4,icon:'🍜',kind:'food',val:'ramen',desc:'음식 메뉴에 라면 추가'},
- {id:'food_jeon',cat:'메뉴',name:'부침개 레시피',price:5,icon:'🥞',kind:'food',val:'jeon',desc:'음식 메뉴에 부침개 추가'},
- {id:'food_sikhye',cat:'메뉴',name:'식혜 레시피',price:5,icon:'🥛',kind:'food',val:'sikhye',desc:'음식 메뉴에 식혜 추가'},
- {id:'food_tteok',cat:'메뉴',name:'떡볶이 레시피',price:6,icon:'🌶️',kind:'food',val:'tteok',desc:'음식 메뉴에 떡볶이 추가'},
- {id:'food_hotteok',cat:'메뉴',name:'호떡 레시피',price:6,icon:'🥮',kind:'food',val:'hotteok',desc:'음식 메뉴에 호떡 추가'},
- {id:'food_bungeo',cat:'메뉴',name:'붕어빵 레시피',price:7,icon:'🐟',kind:'food',val:'bungeo',desc:'음식 메뉴에 붕어빵 추가'},
- {id:'food_hwachae',cat:'메뉴',name:'수박화채 레시피',price:8,icon:'🍉',kind:'food',val:'hwachae',desc:'음식 메뉴에 수박화채 추가'},
+ {id:'food_ramen',cat:'메뉴',name:'라면 레시피',price:4,icon:'🍜',kind:'food',val:'ramen',desc:'레시피 카드'},
+ {id:'food_jeon',cat:'메뉴',name:'부침개 레시피',price:5,icon:'🥞',kind:'food',val:'jeon',desc:'레시피 카드'},
+ {id:'food_sikhye',cat:'메뉴',name:'식혜 레시피',price:5,icon:'🥛',kind:'food',val:'sikhye',desc:'레시피 카드'},
+ {id:'food_tteok',cat:'메뉴',name:'떡볶이 레시피',price:6,icon:'🌶️',kind:'food',val:'tteok',desc:'레시피 카드'},
+ {id:'food_hotteok',cat:'메뉴',name:'호떡 레시피',price:6,icon:'🥮',kind:'food',val:'hotteok',desc:'레시피 카드'},
+ {id:'food_bungeo',cat:'메뉴',name:'붕어빵 레시피',price:7,icon:'🐟',kind:'food',val:'bungeo',desc:'레시피 카드'},
+ {id:'food_hwachae',cat:'메뉴',name:'수박화채 레시피',price:8,icon:'🍉',kind:'food',val:'hwachae',desc:'레시피 카드'},
+ ...PANTRY.map(k=>({id:'ing_'+k,cat:'재료',name:INGS[k].n,price:1,icon:INGS[k].e,kind:'ing',val:k,desc:'기본 재료 1개'})),
  {id:'cons_spice',cat:'쓰는 것',name:'정체불명 향신료',price:2,icon:'🧪',kind:'cons',val:'spice',desc:'다음에 꺼내는 음식이 괴식이 된다'},
  {id:'cons_firework',cat:'쓰는 것',name:'불꽃놀이',price:3,icon:'🎆',kind:'cons',val:'firework',desc:'하늘에 불꽃 세 발 · 같은 마을 모두에게 보임'},
  {id:'cons_firefly',cat:'쓰는 것',name:'반딧불 병',price:4,icon:'🏮',kind:'cons',val:'firefly',desc:'60초 동안 반딧불이 내 주위를 맴돈다'},
@@ -519,21 +675,23 @@ function closeShop(){$('shop').style.display='none'}
 function isEquipped(it){return EQUIP.includes(it.kind)&&me[it.kind]===it.val}
 function renderShop(){$('shopPts').textContent=`🥣 ${pts}`;
  const cats=[...new Set(SHOP.map(i=>i.cat))];$('shopTabs').innerHTML='';
- cats.forEach(c=>{const n=SHOP.filter(i=>i.cat===c&&owned.has(i.id)).length,tot=SHOP.filter(i=>i.cat===c&&i.kind!=='cons').length;const b=document.createElement('button');b.textContent=c+(tot?` ${n}/${tot}`:'');b.className=c===shopCat?'on':'';b.onclick=()=>{shopCat=c;renderShop()};$('shopTabs').appendChild(b)});
+ cats.forEach(c=>{const n=SHOP.filter(i=>i.cat===c&&owned.has(i.id)).length,tot=SHOP.filter(i=>i.cat===c&&i.kind!=='cons'&&i.kind!=='ing').length;const b=document.createElement('button');b.textContent=c+(tot?` ${n}/${tot}`:'');b.className=c===shopCat?'on':'';b.onclick=()=>{shopCat=c;renderShop()};$('shopTabs').appendChild(b)});
  const list=$('shopList');list.innerHTML='';
  SHOP.filter(i=>i.cat===shopCat).forEach(it=>{const row=document.createElement('div');row.className='item';
   const sw=it.kind==='cloth'?`<span class="sw" style="background:${it.val}"></span>`:it.kind==='bowl'?`<span class="sw bowl" style="background:${BOWLS[it.val].b};border-color:${BOWLS[it.val].t}"></span>`:`<span class="ic">${it.icon||''}</span>`;
   const has=owned.has(it.id);const eq=isEquipped(it);
   let btn;
-  if(it.kind==='cons'||!has)btn=`<button data-buy="${it.id}" ${pts<it.price?'disabled':''}>사기 · 🥣${it.price}</button>`;
+  if(it.kind==='ing')btn=`<button data-buy="${it.id}" ${pts<it.price?'disabled':''}>사기 · 🥣${it.price}</button>`;
+  else if(it.kind==='cons'||!has)btn=`<button data-buy="${it.id}" ${pts<it.price?'disabled':''}>사기 · 🥣${it.price}</button>`;
   else if(it.kind==='food'||it.kind==='emotes')btn=`<span class="own">갖고 있음</span>`;
   else btn=`<button data-eq="${it.id}" class="${eq?'on':''}">${eq?'착용 중':'착용'}</button>`;
-  row.innerHTML=`${sw}<div class="tx"><b>${it.name}</b><small>${it.desc||''}${it.kind==='cons'&&cons[it.val]?` · 보유 ${cons[it.val]}개`:''}</small></div>${btn}`;list.appendChild(row)});
+  row.innerHTML=`${sw}<div class="tx"><b>${it.name}</b><small>${it.desc||''}${it.kind==='cons'&&cons[it.val]?` · 보유 ${cons[it.val]}개`:''}${it.kind==='ing'?` · 보유 ${me.inv[it.val]||0}개`:''}${it.kind==='food'?` · 재료 ${RECIPES[it.val].map(x=>INGS[x].e).join('')}`:''}</small></div>${btn}`;list.appendChild(row)});
  list.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy));
  list.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>equip(b.dataset.eq))}
 function buy(id){const it=SHOP.find(i=>i.id===id);if(!it||pts<it.price)return;pts-=it.price;track('buy');
- if(it.kind==='cons'){cons[it.val]++;renderBag();toast(it.val==='spice'?'향신료를 챙겼어요 · 다음 음식에 들어갑니다':`${it.name}를 가방에 넣었어요 · 아래 버튼으로 쓰기`)}
- else{owned.add(id);if(it.kind==='food'){buildFoodMenu();toast(`${it.name}를 배웠어요 · 음식 메뉴에 추가!`)}else if(it.kind==='emotes'){buildEmotes();toast(`새 이모지 ${it.val.join(' ')} 생겼어요`)}else{equip(id,true);toast(`${it.name} 구입 · 바로 착용했어요`)}}
+ if(it.kind==='ing'){invAdd(it.val,1);toast(`${INGS[it.val].e} ${INGS[it.val].n}를 샀어요`);renderBagInv()}
+ else if(it.kind==='cons'){cons[it.val]++;renderBag();toast(it.val==='spice'?'향신료를 챙겼어요 · 다음 음식에 들어갑니다':`${it.name}를 가방에 넣었어요 · 아래 버튼으로 쓰기`)}
+ else{owned.add(id);if(it.kind==='food'){buildFoodMenu();toast(`${it.name}를 배웠어요 · 요리 화면 레시피에 추가!`)}else if(it.kind==='emotes'){buildEmotes();toast(`새 이모지 ${it.val.join(' ')} 생겼어요`)}else{equip(id,true);toast(`${it.name} 구입 · 바로 착용했어요`)}}
  sayEmote(keeper,'😊');for(let i=0;i<14;i++)parts.push({x:STALL.x+rand(-10,10),y:STALL.y-6,vx:rand(-20,20),vy:rand(-30,-10),t:now,life:800,c:pick(['#ffe27a','#fff6d0','#ffb35a'])});
  save();renderShop();updatePop()}
 function equip(id,silent){const it=SHOP.find(i=>i.id===id);if(!it||!owned.has(id))return;const off=isEquipped(it)&&!silent;
@@ -636,6 +794,8 @@ function blocked(x,y){if(x<5||x>W-5||y<14||y>H-2)return true;if(x>STALL.x-18&&x<
 const keys=new Set();
 addEventListener('keydown',ev=>{const k=ev.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))ev.preventDefault();
  if(ev.repeat)return;keys.add(k);
+ if(fishing&&(k===' '||k==='x'||k==='e'||k==='enter')){fishPress();return}
+ if(k==='x'){doGather();return}
  if(k==='e'||k===' ')toggleSit();else if(k==='m')toggleMat();else if(k==='r')clearNearest();else if(k==='b'){if($('shop').style.display==='flex')closeShop();else goShop()}else if(k==='escape')closeShop();else if(k==='f')openFood();else if(k==='q')eat(me);else if(k==='c')cheer(me);else if(k==='g')share(me);
  else if(k>='1'&&k<='9'){const em=myEmotes()[+k-1];if(em)emote(em)}});
 addEventListener('keyup',ev=>keys.delete(ev.key.toLowerCase()));
@@ -644,6 +804,8 @@ cv.addEventListener('pointerdown',ev=>{const r=cv.getBoundingClientRect();const 
  for(const s of allSeats()){let hit;if(s.kind==='table'){const inY=s.row?(ly>98&&ly<116):(ly>62&&ly<84);hit=Math.abs(lx-s.x)<7&&inY}else hit=Math.abs(lx-s.x)<5.5&&ly>s.sitY-15&&ly<s.sitY+4;
   if(hit){if(me.seat===s.id)return;if(seatTaken(s.id,me)){toast('이미 누가 앉아 있어요');return}goSit(s.id);return}}
  if(Math.abs(lx-STALL.x)<18&&ly>STALL.y-32&&ly<STALL.y+4){goShop();return}
+ if(lx>54&&lx<78&&ly>138&&ly<152){if(nearDock()){startFish();return}if(isSeated(me))standUp(me);me.path=route(DOCK.x,DOCK.y);me.autoGather='fish';return}
+ for(let i=0;i<TREES.length;i++){const[tx,ty]=TREES[i];if(Math.abs(lx-tx)<11&&ly>ty-25&&ly<ty+1){if(nearTree()===i){shakeTree(i);return}if(isSeated(me))standUp(me);me.path=route(tx,ty+7);me.autoGather='tree';return}}
  for(const e of allEnts())if(e.pet&&e.px!==undefined&&Math.abs(lx-e.px)<6&&ly>e.py-10&&ly<e.py+2){petClick(e);return}
  for(const t of traces)if(Math.abs(lx-t.x)<7&&Math.abs(ly-t.y)<6){if(Math.hypot(me.x-t.x,me.y-t.y)<22){clearTrace(t);return}if(isSeated(me))standUp(me);const a=traceApproach(t);me.path=route(a.x,a.y);me.target=null;me.autoSit=null;me.autoClear=t;return}
  if(isSeated(me))standUp(me);me.path=route(lx,ly);me.target=null;me.autoSit=null;me.autoClear=null;me.autoShop=false});
@@ -665,12 +827,12 @@ const $=id=>document.getElementById(id);
 const emoRow=$('emoRow');function myEmotes(){const ex=SHOP.filter(i=>i.kind==='emotes'&&owned.has(i.id)).flatMap(i=>i.val);return [...EMOTES,...ex]}
 function buildEmotes(){emoRow.innerHTML='';myEmotes().forEach((em,i)=>{const b=document.createElement('button');b.className='emo';b.textContent=em;b.title=(i+1)+'';b.onclick=()=>emote(em);emoRow.appendChild(b)})}
 const fm=$('foodMenu');const BASE_FOODS=['kimchi','egg','bibim','kimbap'];
-function buildFoodMenu(){fm.innerHTML='';const ks=[...BASE_FOODS,...SHOP.filter(i=>i.kind==='food'&&owned.has(i.id)).map(i=>i.val)];ks.forEach(k=>{const f=FOODS[k];const b=document.createElement('button');b.textContent=f.name;b.onclick=()=>{if(isSeated(me)){takeFood(me,k);closeFood()}};fm.appendChild(b)})}
-function openFood(){if(!isSeated(me)){toast('먼저 자리에 앉아요');return}fm.style.display=fm.style.display==='flex'?'none':'flex'}
+function buildFoodMenu(){if($('cook').style.display==='flex')renderCook();return;fm.innerHTML='';const ks=[...BASE_FOODS,...SHOP.filter(i=>i.kind==='food'&&owned.has(i.id)).map(i=>i.val)];ks.forEach(k=>{const f=FOODS[k];const b=document.createElement('button');b.textContent=f.name;b.onclick=()=>{if(isSeated(me)){takeFood(me,k);closeFood()}};fm.appendChild(b)})}
+function openFood(){openCook()}
 function closeFood(){fm.style.display='none'}
 $('shopQuest').onclick=e=>{e.preventDefault();renderQuests();$('quest').style.display='flex'};$('shopTest').onclick=()=>{pts+=20;save();renderShop();updatePop()};$('bClear').onclick=clearNearest;$('bShop').onclick=goShop;$('shopClose').onclick=closeShop;$('bSit').onclick=toggleSit;$('bMat').onclick=toggleMat;$('bFood').onclick=openFood;$('bEat').onclick=()=>eat(me);$('bCheer').onclick=()=>cheer(me);$('bShare').onclick=()=>share(me);
 function updateUI(){const s=isSeated(me);const L=(t,k)=>`${t}<span class="k"> ${k}</span>`;$('bSit').innerHTML=s?L('일어나기','E'):L('앉기','E');$('bFood').disabled=!s;$('bCheer').disabled=!s;
- $('bEat').disabled=!(s&&me.food&&me.bites>0);$('bShare').disabled=!(s&&me.food&&me.bites>0);$('bFood').innerHTML=me.food?L('음식 바꾸기','F'):L('음식','F');
+ $('bEat').disabled=!(s&&me.food&&me.bites>0);$('bShare').disabled=!(s&&me.food&&me.bites>0);$('bFood').innerHTML=me.food?L('🍳 다시 요리','F'):L('🍳 요리','F');
  $('bMat').innerHTML=me.ownMat?L('돗자리 걷기','M'):L('돗자리 펴기','M')}
 let toastTimer;function toast(t){const el=$('toast');el.textContent=t;el.style.opacity=1;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.style.opacity=0,2600)}
 function updatePop(){$('pop').textContent=`${online?'🟢':'⚪'} 저녁 마을 ${village} · ${population()}/${CAP}명 · 돗자리 ${mats.length}/${MAX_MATS}`;
@@ -678,12 +840,53 @@ function updatePop(){$('pop').textContent=`${online?'🟢':'⚪'} 저녁 마을 
  document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',+b.dataset.v===village))}
 document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>joinVillage(+b.dataset.v));
 
+// ---------- 계정·서버 저장·기록 ----------
+const SITE=location.origin+location.pathname;let authUser=null,cloudReady=false,cloudTimer=null,lastCloud=null,invited=false;const evCd={};
+function cloudSave(o){if(!cloudReady||!supa||!authUser)return;lastCloud=o;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const{error}=await supa.from('profiles').upsert({id:authUser.id,name:me.name,save:lastCloud,quest:Q,updated_at:new Date().toISOString()});if(error)console.warn('cloudSave',error.message)}catch(e){}},1500)}
+function logEvent(kind,meta){if(!cloudReady||!supa)return;if(kind!=='session'&&now<(evCd[kind]||0))return;evCd[kind]=now+4000;try{supa.from('events').insert({kind,village,meta:meta||null}).then(()=>{},()=>{})}catch(e){}}
+function applyCloud(d){const sv=d.save||{};pts=sv.pts|0;owned.clear();(sv.owned||[]).forEach(x=>owned.add(x));if(sv.cons)Object.assign(cons,sv.cons);for(const k of EQUIP)me[k]=sv[k]||(k==='cloth'?me.baseCloth:null);
+ if(d.name||sv.name)me.name=d.name||sv.name;me.carry=Array.isArray(sv.carry)?sv.carry:[];me.inv={};applySave(sv);if(d.quest&&d.quest.day)Q=Object.assign({tut:0,tutP:0,day:'',daily:[],done:0},d.quest);if(Q.day!==todayStr())rollDaily();
+ try{localStorage.setItem('hankki-quest-v1',JSON.stringify(Q))}catch(e){}$('nameIn').value=me.name;buildEmotes();renderBag();renderBagInv();renderQuests();updateUI();updatePop()}
+async function initAuth(){if(!supa){updateAcct();return}authListen();try{let{data:{session}}=await supa.auth.getSession();
+  if(!session){const r=await supa.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}
+  authUser=session.user;me.id=authUser.id;
+  const{data,error}=await supa.from('profiles').select('save,quest,name').eq('id',authUser.id).maybeSingle();if(error)throw error;
+  if(data&&data.save&&Object.keys(data.save).length)applyCloud(data);
+  cloudReady=true;save();saveQ();logEvent('session',{v:village,mobile:matchMedia('(pointer:coarse)').matches})}
+ catch(e){console.warn('auth',e&&e.message);cloudReady=false}updateAcct()}
+function updateAcct(){const b=$('bAcct');if(!b)return;const anon=!authUser||authUser.is_anonymous;b.textContent=!cloudReady?'👤 저장 안 됨':anon?'👤 손님 계정':'👤 '+(authUser.email||'내 계정').split('@')[0];
+ const st=$('acctState');if(st)st.innerHTML=!cloudReady?'서버에 연결되지 않아 <b>이 브라우저에만</b> 저장되고 있어요.':anon?'지금은 <b>손님 계정</b>이에요. 기록은 서버에 저장되지만, 브라우저 기록을 지우거나 기기를 바꾸면 찾을 수 없어요. 이메일을 연결해 두세요.':`<b>${authUser.email}</b> 계정으로 저장 중이에요. 다른 기기에서도 이 이메일로 이어할 수 있어요.`;
+ const lk=$('acctLink');if(lk)lk.style.display=cloudReady&&anon?'block':'none'}
+async function linkEmail(){const em=$('acctEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(em)){toast('이메일을 확인해 주세요');return}
+ const{error}=await supa.auth.updateUser({email:em},{emailRedirectTo:SITE});$('acctMsg').textContent=error?('실패: '+error.message):'메일함에서 확인 링크를 눌러 주세요. 누르면 이 기록이 그 이메일 계정이 돼요.';if(!error)logEvent('link_email')}
+async function loginEmail(){const em=$('loginEmail').value.trim();if(!/^\S+@\S+\.\S+$/.test(em)){toast('이메일을 확인해 주세요');return}
+ const{error}=await supa.auth.signInWithOtp({email:em,options:{emailRedirectTo:SITE,shouldCreateUser:false}});$('acctMsg').textContent=error?('실패: '+error.message+' (이 이메일로 연결된 기록이 없을 수 있어요)'):'메일함의 로그인 링크를 이 기기에서 눌러 주세요. 지금 기기의 손님 기록 대신 그 계정 기록을 불러와요.'}
+function authListen(){if(supa)try{supa.auth.onAuthStateChange((ev,session)=>{if(ev==='SIGNED_IN'&&session&&authUser&&session.user.id!==authUser.id){location.replace(SITE)}else if(ev==='USER_UPDATED'&&session){authUser=session.user;updateAcct();if(!authUser.is_anonymous)toast('이메일이 연결됐어요 · 이제 기록이 안전해요')}})}catch(e){}}
+async function invite(){const url=SITE+'#village-'+village;const text=`한끼 저녁 마을 ${village}에서 같이 밥 먹어요 🍚`;track('invite');logEvent('invite',{v:village});
+ try{if(navigator.share){await navigator.share({title:'한끼',text,url});return}}catch(e){if(e&&e.name==='AbortError')return}
+ try{await navigator.clipboard.writeText(text+' '+url);toast('초대 링크를 복사했어요 · 친구에게 붙여넣기!')}catch(e){prompt?0:0;toast(url)}}
+async function makeCard(key,sel,title){const f=FOODS[key];if(!f)return;const c=document.createElement('canvas');c.width=540;c.height=720;const g3=c.getContext('2d');
+ const grd=g3.createLinearGradient(0,0,0,720);grd.addColorStop(0,'#3a2716');grd.addColorStop(1,'#1d1a16');g3.fillStyle=grd;g3.fillRect(0,0,540,720);
+ g3.fillStyle='#9c3b2c';g3.fillRect(16,16,508,6);g3.fillRect(16,698,508,6);g3.fillRect(16,16,6,688);g3.fillRect(518,16,6,688);
+ for(let i=0;i<40;i++){g3.fillStyle=i%2?'rgba(255,207,106,.25)':'rgba(255,255,255,.12)';g3.fillRect(30+Math.random()*480,30+Math.random()*200,3,3)}
+ g3.fillStyle='#f0b35a';g3.font='700 26px system-ui,sans-serif';g3.textAlign='center';g3.fillText('한끼 · '+(f.weird?'괴식 도감':'오늘의 한 끼'),270,70);
+ g3.fillStyle='#b9ad98';g3.font='18px system-ui,sans-serif';g3.fillText(title||'',270,102);
+ g3.fillStyle='rgba(255,200,110,.18)';g3.beginPath();g3.arc(270,250,120,0,7);g3.fill();drawFoodIcon(g3,f,270,250,14);
+ g3.fillStyle='#f3eadb';g3.font='700 40px system-ui,sans-serif';g3.fillText(f.name,270,420);
+ g3.font='22px system-ui,sans-serif';g3.fillStyle='#ffe7b0';const line='“'+f.lines[0]+'”';let y=470,cur='';for(const ch of line){if(g3.measureText(cur+ch).width>440){g3.fillText(cur,270,y);y+=32;cur=ch}else cur+=ch}if(cur)g3.fillText(cur,270,y);
+ g3.font='26px system-ui,sans-serif';g3.fillStyle='#f3eadb';g3.fillText((sel||[]).map(k=>INGS[k]?INGS[k].e:'').join('  ')||'🍚',270,y+56);
+ g3.font='18px system-ui,sans-serif';g3.fillStyle='#b9ad98';g3.fillText(`만든 사람 ${me.name} · ${todayStr()}`,270,640);g3.fillStyle='#f0b35a';g3.fillText(SITE.replace(/^https?:\/\//,''),270,672);
+ track('cardShare');logEvent('card',{food:f.name});
+ c.toBlob(async blob=>{if(!blob)return;const file=new File([blob],`hankki-${Date.now()}.png`,{type:'image/png'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'한끼 '+f.name,text:`${f.name} — ${f.lines[0]} #한끼 #괴식`});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('카드 이미지를 저장했어요 · SNS에 올려 보세요!')},'image/png')}
+
 // ---------- 마을(채널) + 탭 간 연결 ----------
 const SUPA_URL='https://qpgpjetzidkpcrhsbzqt.supabase.co',SUPA_KEY='sb_publishable_dI3ywYa-41ewwE7YubQ9jA_4Ag0DGu8';
 let village=1,bc=null,supa=null,chan=null,online=false,autoMoved=false,forceSend=true;
-try{if(window.supabase&&window.supabase.createClient)supa=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:false},realtime:{params:{eventsPerSecond:20}}})}catch(e){supa=null}
+try{if(window.supabase&&window.supabase.createClient)supa=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit',storageKey:'hankki-auth'},realtime:{params:{eventsPerSecond:20}}})}catch(e){supa=null}
 function send(m){if(online&&chan){try{chan.send({type:'broadcast',event:'m',payload:m})}catch(e){}}else if(bc)try{bc.postMessage(m)}catch(e){}}
-function pack(){const m=me.ownMat&&matById(me.ownMat);return{id:me.id,name:me.name,x:me.x,y:me.y,dir:me.dir,seat:me.seat,food:me.food,bites:me.bites,hair:me.hair,cloth:me.cloth,moving:me.moving,
+function pack(){const m=me.ownMat&&matById(me.ownMat);return{id:me.id,name:me.name,x:me.x,y:me.y,dir:me.dir,seat:me.seat,food:me.food,foodDef:(me.food&&FOODS[me.food]&&FOODS[me.food].dyn)?{name:FOODS[me.food].name,color:FOODS[me.food].color,multi:FOODS[me.food].multi,weird:FOODS[me.food].weird,uniq:FOODS[me.food].uniq,lines:FOODS[me.food].lines}:null,bites:me.bites,hair:me.hair,cloth:me.cloth,moving:me.moving,
  mat:m?{id:m.id,x:m.x,y:m.y,skin:m.skin}:null,title:me.title||null,carryN:me.carry.length,hat:me.hat||null,bowl:me.bowl||null,pet:me.pet||null,fireflyLeft:(me.fireflyUntil||0)-now,
  emote:now<me.emoteUntil?me.emote:null,emoteLeft:me.emoteUntil-now,bubble:now<me.bubbleUntil?me.bubble:null,bubbleLeft:me.bubbleUntil-now,cheerLeft:me.cheerUntil-now,eatLeft:me.eatUntil-now}}
 function dropRemote(id){const r=remotes.get(id);if(!r)return;remotes.delete(id);for(const m of [...mats])if(m.ownerId===id){const others=seatedOn(m);if(others.length){m.ownerId=others[0].id;m.ownerName=others[0].name;others[0].ownMat=m.id;if(others[0]===me)updateUI()}else removeMat(m)}return r}
@@ -691,16 +894,16 @@ function onMsg(ev){const m=ev.data;if(!m||(m.id===me.id&&m.t!=='share'))return;
  if(m.t==='state'){const s=m.s;let r=remotes.get(s.id);if(!r){r=makeEnt({isRemote:true,id:s.id});remotes.set(s.id,r);toast(`${s.name}님이 마을에 들어왔어요`);if(amHost())setTimeout(()=>{for(const t of traces)if(t.id&&t.shared){const{until,...tr}=t;send({t:'trace',id:me.id,tr})}},600)}
   for(const mm of [...mats])if(mm.ownerId===s.id&&(!s.mat||mm.id!==s.mat.id))removeMat(mm);
   if(s.mat){const ex=matById(s.mat.id);if(!ex)createMat(s.mat.id,s.mat.x,s.mat.y,s.id,s.name,s.mat.skin);else ex.skin=s.mat.skin}r.title=s.title;r.carryN=s.carryN||0;r.hat=s.hat;r.bowl=s.bowl;if(r.pet!==s.pet){r.pet=s.pet;r.px=undefined}r.fireflyUntil=now+s.fireflyLeft;
-  const was=r.seat;Object.assign(r,{name:s.name,dir:s.dir,seat:s.seat,food:s.food,bites:s.bites,hair:s.hair,cloth:s.cloth,moving:s.moving,last:now,tx:s.x,ty:s.y});
+  if(s.food&&s.foodDef)regFood(s.food,s.foodDef);const was=r.seat;Object.assign(r,{name:s.name,dir:s.dir,seat:s.seat,food:s.food,bites:s.bites,hair:s.hair,cloth:s.cloth,moving:s.moving,last:now,tx:s.x,ty:s.y});
   if(r.x===undefined||Math.hypot(r.x-s.x,r.y-s.y)>30||s.seat!=null){r.x=s.x;r.y=s.y}
   if(s.seat!=null&&was!==s.seat)for(let k=traces.length-1;k>=0;k--)if(traces[k].seat===s.seat)traces.splice(k,1);
   if(s.emote){r.emote=s.emote;r.emoteUntil=now+s.emoteLeft}else r.emoteUntil=0;
   if(s.bubble){r.bubble=s.bubble;r.bubbleUntil=now+s.bubbleLeft}else r.bubbleUntil=0;
   r.cheerUntil=now+s.cheerLeft;r.eatUntil=now+s.eatLeft}
  else if(m.t==='cheer'){const r=remotes.get(m.id);if(r){r.cheerT=now;r.cheerUntil=now+1600;checkGroup();npcsReactCheer(unitOf(r))}}
- else if(m.t==='share'&&m.to===me.id){receive(me,m.from,m.food)}
+ else if(m.t==='share'&&m.to===me.id){if(m.foodDef)regFood(m.food,m.foodDef);receive(me,m.from,m.food)}
  else if(m.t==='fx'&&m.k==='fw'){spawnFirework(m.x,m.y)}
- else if(m.t==='trace'&&m.tr&&!traces.some(t=>t.id===m.tr.id)){if(!m.tr.seat||seatOf(m.tr.seat))traces.push(Object.assign({until:now+60000},m.tr))}
+ else if(m.t==='trace'&&m.tr&&!traces.some(t=>t.id===m.tr.id)){if(m.tr.foodDef)regFood(m.tr.food,m.tr.foodDef);if(!m.tr.seat||seatOf(m.tr.seat))traces.push(Object.assign({until:now+60000},m.tr))}
  else if(m.t==='tn'){const t=traces.find(t=>t.id===m.tid);if(t)t.n=m.n}
  else if(m.t==='clear'){const k=traces.findIndex(t=>t.id===m.tid);if(k>=0){const t=traces[k];traces.splice(k,1);for(let i=0;i<6;i++)parts.push({x:t.x+rand(-4,4),y:t.y-2,vx:rand(-10,10),vy:rand(-20,-8),t:now,life:600,c:'#bfe8ff'})}}
  else if(m.t==='bye'){const r=dropRemote(m.id);if(r)toast(`${r.name}님이 떠났어요`)}}
@@ -725,13 +928,14 @@ addEventListener('pagehide',()=>send({t:'bye',id:me.id}));
 // ---------- 업데이트 ----------
 let spawnAt=now+1500;
 function update(dt){
+ updateFish(dt);
  updateButterflies(dt);for(const e of [...allEnts()]){updatePet(e,dt);if(e.fireflyUntil>now&&Math.random()<dt*7)parts.push({x:e.x+rand(-16,16),y:e.y-rand(2,22),vx:rand(-4,4),vy:rand(-4,3),t:now,life:1800,c:pick(['#d8ff7a','#f4ff9a','#b8f05a']),steam:1})}
  if(!isSeated(me)){let vx=0,vy=0;if(keys.has('arrowleft')||keys.has('a'))vx--;if(keys.has('arrowright')||keys.has('d'))vx++;if(keys.has('arrowup')||keys.has('w'))vy--;if(keys.has('arrowdown')||keys.has('s'))vy++;
   const sp=56;me.moving=false;
   if(vx||vy){me.target=null;me.path=null;me.autoSit=null;me.autoClear=null;me.autoShop=false;const l=Math.hypot(vx,vy);tryMove(vx/l*sp*dt,vy/l*sp*dt);me.dir=Math.abs(vx)>=Math.abs(vy)&&vx?(vx<0?'left':'right'):(vy<0?'up':'down')}
   else{const tg=me.path&&me.path.length?me.path[0]:me.target;
    if(tg){const dx=tg.x-me.x,dy=tg.y-me.y,d=Math.hypot(dx,dy);
-    if(d<1.5){if(me.path&&me.path.length){me.path.shift();if(!me.path.length){if(me.autoSit!=null&&!seatTakenByOthers(me.autoSit,null))sit(me,me.autoSit);if(me.autoShop){me.autoShop=false;if(nearShop())openShop()}if(me.autoClear&&traces.includes(me.autoClear)&&Math.hypot(me.x-me.autoClear.x,me.y-me.autoClear.y)<26)clearTrace(me.autoClear);me.autoClear=null;me.autoSit=null;me.path=null}}else me.target=null}
+    if(d<1.5){if(me.path&&me.path.length){me.path.shift();if(!me.path.length){if(me.autoSit!=null){if(!seatTaken(me.autoSit,me))sit(me,me.autoSit);else toast('앗, 누가 먼저 앉았어요')}if(me.autoShop){me.autoShop=false;if(nearShop())openShop()}if(me.autoGather){const g=me.autoGather;me.autoGather=null;if(g==='fish'&&nearDock())startFish();else if(g==='tree'&&nearTree()>=0)shakeTree(nearTree())}if(me.autoClear&&traces.includes(me.autoClear)&&Math.hypot(me.x-me.autoClear.x,me.y-me.autoClear.y)<26)clearTrace(me.autoClear);me.autoClear=null;me.autoSit=null;me.path=null}}else me.target=null}
     else{const st=Math.min(d,sp*dt);let ok=tryMove(dx/d*st,dy/d*st);if(!ok){const a0=Math.atan2(dy,dx);for(const da of[.7,-.7,1.4,-1.4,2,-2]){if(tryMove(Math.cos(a0+da)*st,Math.sin(a0+da)*st)){ok=true;break}}}me.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');if(!ok){me.target=null;me.path=null;me.autoSit=null}}}}
   if(me.moving)me.walkT+=dt}
  for(const[id,r]of remotes){if(now-r.last>9000){dropRemote(id);continue}if(r.seat==null&&r.tx!==undefined){r.x+=(r.tx-r.x)*Math.min(1,dt*12);r.y+=(r.ty-r.y)*Math.min(1,dt*12);if(r.moving)r.walkT+=dt}}
@@ -755,7 +959,7 @@ function render(){
  for(const t of traces)if(t.kind!=='table')drawStack(t);
  for(const e of allEnts()){const s=seatOf(e.seat);if(s&&s.kind==='mat'&&e.food)drawPlate(s.x,s.plateY,e.food,e.bites,false,e.bowl)}
  const list=[];
- for(const[x,y]of TREES)list.push({k:y,f:()=>drawTree(x,y)});
+ TREES.forEach(([x,y],i)=>list.push({k:y,f:()=>drawTree(x+((treeShake[i]||0)>now?Math.round(Math.sin(now/40)*1.5):0),y)}));
  for(const[x,y]of LANTERNS)list.push({k:y,f:()=>drawLantern(x,y)});
  for(const s of SIGNS)list.push({k:s.y,f:()=>drawSign(s)});
  list.push({k:70,f:drawTopChairs});
@@ -790,10 +994,11 @@ function render(){
   if(now<e.bubbleUntil&&e.bubble)bubble(e.bubble,e.x*S,by,fs)}
  if(isSeated(me)&&nearestTrace()){ctx.font=small;label('R: 그릇 치우기',me.x*S,(me.y+(seatOf(me.seat).kind==='table'&&seatOf(me.seat).row===1?9:12))*S,'rgba(191,232,255,.95)','#123048')}
  if(!isSeated(me)&&!me.path){let hint=nearestTrace()?'R: 그릇 치우기':null;
+  if(!hint&&nearDock())hint='X: 낚시하기';if(!hint&&nearTree()>=0)hint=now<(treeCd[nearTree()]||0)?'나무가 쉬는 중':'X: 나무 흔들기';
   if(!hint&&nearShop())hint=me.carry.length?`B: 그릇 ${me.carry.length}개 반납`:'B: 점방 열기';
   if(!hint)for(const s of allSeats()){if(seatTaken(s.id,me))continue;const d=Math.min(Math.hypot(me.x-s.x,me.y-s.standY),s.kind==='mat'?Math.hypot(me.x-s.x,me.y-s.sitY)+4:1e9);if(d<22){hint='E: 앉기';break}}
   if(!hint&&!me.ownMat&&mats.length<MAX_MATS&&validMatSpot(Math.round(me.x),Math.round(me.y-3)))hint='M: 돗자리 펴기';
-  if(hint){ctx.font=small;label(hint,me.x*S,(me.y+6)*S,hint[0]==='R'?'rgba(191,232,255,.95)':hint[0]==='B'?'rgba(255,214,200,.95)':'rgba(255,231,176,.92)',hint[0]==='R'?'#123048':'#3a2a10')}}
+  if(hint){ctx.font=small;label(hint,me.x*S,(me.y+6)*S,hint[0]==='R'?'rgba(191,232,255,.95)':hint[0]==='B'?'rgba(255,214,200,.95)':hint[0]==='X'?'rgba(200,240,200,.95)':'rgba(255,231,176,.92)',hint[0]==='R'?'#123048':hint[0]==='X'?'#1d3a1d':'#3a2a10')}}
  for(const p of parts)if(p.emoji){const a=1-(now-p.t)/p.life;ctx.globalAlpha=Math.max(0,a);ctx.font=`${Math.round(fs*1.4)}px system-ui,sans-serif`;ctx.fillText(p.emoji,p.x*S,p.y*S);ctx.globalAlpha=1}
  for(const b of banners){const u=(now-b.t)/(b.long?4200:2600);ctx.globalAlpha=u<.8?1:Math.max(0,(1-u)*5);ctx.font=`700 ${Math.round(fs*1.4)}px system-ui,sans-serif`;
   label(b.txt,b.x*S,b.y*S-(u<.15?(.15-u)*120:0)-fs,'rgba(40,24,10,.85)','#ffe08a',true);ctx.globalAlpha=1}}
@@ -812,12 +1017,15 @@ function rr(x,y,ww,hh,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+ww,y,x+ww
 function resize(){document.body.classList.toggle('compact',innerHeight<540);const st=$('stage');const aw=Math.max(200,st.clientWidth-(document.body.classList.contains('compact')?0:12)),ah=Math.max(120,st.clientHeight-(document.body.classList.contains('compact')?0:8));
  let s=Math.min(aw/W,ah/H);S=Math.max(.8,s);const dpr=Math.min(2,devicePixelRatio||1);const cw=Math.floor(W*S),ch=Math.floor(H*S);cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);cv.style.width=cw+'px';cv.style.height=ch+'px';S=S*dpr}
 addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,250));document.addEventListener('fullscreenchange',()=>setTimeout(resize,100));
-$('bHelp').onclick=()=>{$('help').style.display='flex'};$('bQuest').onclick=()=>{renderQuests();$('quest').style.display='flex'};$('questClose').onclick=()=>{$('quest').style.display='none'};$('quest').onclick=e=>{if(e.target.id==='quest')$('quest').style.display='none'};$('helpClose').onclick=()=>{$('help').style.display='none'};$('help').onclick=e=>{if(e.target.id==='help')$('help').style.display='none'};
+$('bHelp').onclick=()=>{$('help').style.display='flex'};$('bInvite').onclick=invite;$('bAcct').onclick=()=>{updateAcct();$('acct').style.display='flex'};$('acctClose').onclick=()=>{$('acct').style.display='none'};$('acctLinkGo').onclick=linkEmail;$('loginGo').onclick=loginEmail;for(const id of['acctEmail','loginEmail'])$(id).onkeydown=e=>e.stopPropagation();$('acct').onclick=e=>{if(e.target.id==='acct')$('acct').style.display='none'};
+$('cookClose').onclick=closeCook;$('cookGo').onclick=doCook;$('cookRice').onclick=()=>{pot=[];doCook()};$('resClose').onclick=()=>{$('result').style.display='none'};$('resCard').onclick=()=>{if(lastResult)makeCard(lastResult.key,lastResult.sel,lastResult.title)};
+$('bGather').onclick=doGather;$('bInv').onclick=openInv;$('invClose').onclick=()=>{$('inv').style.display='none'};$('fish').onclick=fishPress;
+for(const id of['cook','result','inv'])$(id).onclick=e=>{if(e.target.id===id)$(id).style.display='none'};$('bQuest').onclick=()=>{renderQuests();$('quest').style.display='flex'};$('questClose').onclick=()=>{$('quest').style.display='none'};$('quest').onclick=e=>{if(e.target.id==='quest')$('quest').style.display='none'};$('helpClose').onclick=()=>{$('help').style.display='none'};$('help').onclick=e=>{if(e.target.id==='help')$('help').style.display='none'};
 $('rotOk').onclick=()=>{document.body.classList.add('portraitOK')};
 {const de=document.documentElement;if(!de.requestFullscreen&&!de.webkitRequestFullscreen)$('bFull').style.display='none';
  $('bFull').onclick=async()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{await (de.requestFullscreen||de.webkitRequestFullscreen).call(de);try{await screen.orientation.lock('landscape')}catch(e){}}}catch(e){toast('이 기기에서는 전체 화면이 안 돼요')}setTimeout(resize,200)}}
 
-me.baseCloth=me.cloth;me.carry=[];load();loadQ();renderQuests();setInterval(()=>{if(Q.day!==todayStr()){rollDaily();saveQ();renderQuests();toast('👵 오늘의 부탁이 새로 왔어요')}},60000);{const ni=$('nameIn');ni.value=me.name;ni.onchange=()=>{const v=ni.value.trim().slice(0,8);if(v){me.name=v;save();forceSend=true;toast(`이제 ${v}님이에요`)}else ni.value=me.name};ni.onkeydown=e=>e.stopPropagation()}buildGround();rebuildSeats();buildFoodMenu();buildEmotes();renderBag();resize();openChannel();updateUI();updatePop();
+me.baseCloth=me.cloth;me.carry=[];me.inv={};load();if(!me.starter){for(const[k,n]of Object.entries(STARTER))me.inv[k]=(me.inv[k]||0)+n;me.starter=1;save()}renderBagInv();loadQ();renderQuests();setInterval(()=>{if(Q.day!==todayStr()){rollDaily();saveQ();renderQuests();toast('👵 오늘의 부탁이 새로 왔어요')}},60000);{const ni=$('nameIn');ni.value=me.name;ni.onchange=()=>{const v=ni.value.trim().slice(0,8);if(v){me.name=v;save();forceSend=true;toast(`이제 ${v}님이에요`)}else ni.value=me.name};ni.onkeydown=e=>e.stopPropagation()}buildGround();rebuildSeats();buildFoodMenu();buildEmotes();renderBag();resize();{const mh=(location.hash||'').match(/^#village-(\d{1,3})$/);if(mh){village=Math.max(1,+mh[1]);invited=true}}let opened=false;const go=()=>{if(opened)return;opened=true;openChannel();updatePop();if(invited){logEvent('invite_open',{v:village});toast(`초대받은 저녁 마을 ${village}에 왔어요`)}};initAuth().finally(go);setTimeout(go,5000);updateUI();updatePop();if(!/[?&]dev\b/.test(location.search))$('shopTest').style.display='none';
 setTimeout(()=>toast(`어서 와요, ${me.name}님. 빈 그릇을 치워 🥣 포인트를 모아 점방에서 써 보세요`),400);
 let last=performance.now();
 function frame(t){const dt=Math.min(.05,(t-last)/1000);last=t;now=t;update(dt);render();requestAnimationFrame(frame)}
